@@ -43,12 +43,12 @@ And so forth.
 With 0.15 you had to go:
 ```
 TF_DATA_DIR="$PWD/.terraform" terraform -chdir=../common/ init -backend-config="$PWD/backend-config.conf
-TF_DATA_DIR="$PWD/.terraform" t107 -chdir="../common"  plan -out plan -var-file="$PWD/terraform.tfvars
+TF_DATA_DIR="$PWD/.terraform" terraform -chdir="../common"  plan -out plan -var-file="$PWD/terraform.tfvars
 ```
 
 Tedious.
 
-If you can, just destroy the shit and start over. But if you have live customers, databases and others
+If you can, just destroy the sh*t and start over. But if you have live customers, databases and others
 that is not really doable. 
 
 Importing then...
@@ -69,6 +69,7 @@ cp common/*.tf ./prod
 For each stage:
 ````
 cd <stage>
+rm -rf .terraform
 terraform init -backend-config=backend-config.conf
 terraform state pull > state.json
 ````
@@ -87,18 +88,26 @@ Create a new main.tf in d2 and make sure to copy in your stage variables e.g.
 module "common" {
   source = "../common"
   
-  #< ... your variables from terrafrom.tfvars for your stage ...>
+  #< ... your variables from terraform.tfvars for your stage ...>
 }
 ```
+
+Do a `terraform init` followed by a `terraform plan` and make sure all resources are in "create" state. Note 
+that you do not have any stored state to look at. When you do the plan, make sure to clean out any old 
+warnings etc. 
+
+
 
 Copy the stage `input.json` to `d2 e,g,
 
 `cp infrastructure/test/input.json infrastructure/d2`
 
-Run the _no_so_amazing_ `terraform.js` script, it will produce an `import.sh` script in `infrastructure/d2`
+Run the _no_so_amazing_ `terraform.js` script, it will produce an `import.sh` script in `infrastructure/d2` Note
+that it should run from the "parent" directory of `infrastructure`
 
-You should no be able to run `import.sh` to see if it can import all resources. If not modify `terraform.js` 
+You should now be able to run `import.sh` to see if it can import all resources. If not modify `terraform.js` 
 accordingly.
+
 
 When all imports are working, go back to your stage directory and remove all `.tf` files.
 
@@ -114,7 +123,7 @@ terraform {
 
 **NB** Now it is _very_ important that you select a new state!! The new state should be totally empty.
 
-Make sure to `rm -rf .terraform` and run `tf init`
+Make sure to `rm -rf .terraform*` and run `tf init`
 
 Then `terraform plan` and make sure all recourses are up for creation. If so, run the `import.sh` script. 
 

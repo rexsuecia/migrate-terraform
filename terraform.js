@@ -23,7 +23,11 @@ const specialName = item => {
     aws_backup_selection: (itm) =>
       `"${itm.instances[0].attributes.plan_id}|${itm.instances[0].attributes.id}"`,
     aws_lambda_permission: (itm) =>
-      `${itm.instances[0].attributes.function_name}/${itm.instances[0].attributes.statement_id}`
+      `${itm.instances[0].attributes.function_name}/${itm.instances[0].attributes.statement_id}`,
+    aws_cloudwatch_event_target: (itm) => {
+      // expected EVENTBUSNAME/RULENAME/TARGETID or RULENAME/TARGETID
+      return `${itm.instances[0].attributes.event_bus_name}/${itm.instances[0].attributes.rule}/${itm.instances[0].attributes.target_id}`
+    }
   }
 
   if (specials[item.type]) {
