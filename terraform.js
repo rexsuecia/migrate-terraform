@@ -14,19 +14,23 @@ const BLACK_LIST = {
 /**
  * Some resources require a more complex identifier
  */
-const specialName = item => {
+const specialName = (item, index = 0) => {
   const specials = {
     aws_api_gateway_stage: (itm) =>
-      itm.instances[0].attributes.rest_api_id + '/' + itm.instances[0].attributes.stage_name,
+      itm.instances[index].attributes.rest_api_id + '/' + itm.instances[index].attributes.stage_name,
     aws_iam_role_policy_attachment: (itm) =>
-      itm.instances[0].attributes.role + '/' + itm.instances[0].attributes.policy_arn,
+      itm.instances[index].attributes.role + '/' + itm.instances[index].attributes.policy_arn,
     aws_backup_selection: (itm) =>
-      `"${itm.instances[0].attributes.plan_id}|${itm.instances[0].attributes.id}"`,
+      `"${itm.instances[index].attributes.plan_id}|${itm.instances[index].attributes.id}"`,
     aws_lambda_permission: (itm) =>
-      `${itm.instances[0].attributes.function_name}/${itm.instances[0].attributes.statement_id}`,
+      `${itm.instances[index].attributes.function_name}/${itm.instances[index].attributes.statement_id}`,
     aws_cloudwatch_event_target: (itm) => {
       // expected EVENTBUSNAME/RULENAME/TARGETID or RULENAME/TARGETID
-      return `${itm.instances[0].attributes.event_bus_name}/${itm.instances[0].attributes.rule}/${itm.instances[0].attributes.target_id}`
+      return `${itm.instances[index].attributes.event_bus_name}/${itm.instances[index].attributes.rule}/${itm.instances[0].attributes.target_id}`
+    },
+    aws_cloudwatch_log_metric_filter: (itm) => {
+      // expected <log_group_name>:<name>
+      return `${itm.instances[index].attributes.log_group_name}:${itm.instances[0].attributes.name}`
     }
   }
 
@@ -52,8 +56,8 @@ state.resources.forEach(item => {
   } else if (item.mode === 'managed') {
     if (!BLACK_LIST[item.type]) {
       const multiple = item.instances.length > 1
-      item.instances.forEach(instance => {
-        const id = specialName(item) || instance.attributes.id || instance.attributes.name || instance.attributes.arn
+      item.instances.forEach((instance, idx) => {
+        const id = specialName(item, idx) || instance.attributes.id || instance.attributes.name || instance.attributes.arn
 
         // If this resource have multiple instances we need to create one for each with name
         const index = multiple ? `[\\"${instance.index_key}\\"]` : ''
