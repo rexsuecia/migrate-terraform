@@ -31,6 +31,9 @@ const specialName = (item, index = 0) => {
     aws_cloudwatch_log_metric_filter: (itm) => {
       // expected <log_group_name>:<name>
       return `${itm.instances[index].attributes.log_group_name}:${itm.instances[0].attributes.name}`
+    },
+    aws_s3_bucket_object: (itm) => {
+      return `s3://${itm.instances[index].attributes.bucket}/${itm.instances[0].attributes.key}`
     }
   }
 
